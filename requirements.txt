@@ -6,4 +6,5 @@ tensorflow
 opencv-python-headless
 pillow
 reportlab
+xgboost
 scikit-learn
