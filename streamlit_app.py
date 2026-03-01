@@ -378,4 +378,5 @@ else:
     st.info("Run both analyses to generate final report.")
 
 st.divider()
+
 st.caption("NeuroSense AI • Advanced Clinical Screening System")
