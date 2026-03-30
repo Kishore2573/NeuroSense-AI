@@ -1,3 +1,17 @@
+# =============================
+# SYSTEM CLEAN START (Fix warnings)
+# =============================
+import os
+import warnings
+
+os.environ["CUDA_VISIBLE_DEVICES"] = "-1"        # Disable GPU errors
+os.environ["TF_ENABLE_ONEDNN_OPTS"] = "0"        # Disable oneDNN logs
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"         # Hide TensorFlow logs
+warnings.filterwarnings("ignore")                # Hide sklearn warnings
+
+# =============================
+# IMPORTS
+# =============================
 import streamlit as st
 import numpy as np
 import librosa
@@ -6,7 +20,6 @@ import tempfile
 import tensorflow as tf
 import cv2
 from PIL import Image
-from datetime import datetime
 import base64
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
 from reportlab.lib.styles import getSampleStyleSheet
@@ -40,7 +53,6 @@ def add_bg(image_file):
     st.markdown(
         f"""
         <style>
-
         .stApp {{
             background:
             linear-gradient(rgba(0,0,0,0.45), rgba(0,0,0,0.65)),
@@ -98,12 +110,6 @@ def add_bg(image_file):
             background-color:#e11d48;
         }}
 
-        @media (max-width: 768px) {{
-            h1 {{
-                font-size:32px;
-            }}
-        }}
-
         </style>
         """,
         unsafe_allow_html=True
@@ -130,12 +136,19 @@ st.divider()
 # =============================
 # LOAD MODELS
 # =============================
-@st.cache_resource
+@st.cache_resource(show_spinner=False)
 def load_models():
-    voice_model = joblib.load("voice_model.pkl")
-    scaler = joblib.load("scaler.pkl")
-    handwriting_model = tf.keras.models.load_model("handwriting_model.keras")
-    return voice_model, scaler, handwriting_model
+    try:
+        voice_model = joblib.load("voice_model.pkl")
+        scaler = joblib.load("scaler.pkl")
+        handwriting_model = tf.keras.models.load_model(
+            "handwriting_model.keras",
+            compile=False
+        )
+        return voice_model, scaler, handwriting_model
+    except Exception as e:
+        st.error(f"Model loading failed: {e}")
+        st.stop()
 
 voice_model, scaler, handwriting_model = load_models()
 
@@ -292,7 +305,7 @@ with col2:
         if st.button("Analyze Handwriting"):
             with st.spinner("Analyzing handwriting patterns..."):
                 processed = preprocess(image)
-                prob = handwriting_model.predict(processed, verbose=0)[0][0]
+                prob = float(handwriting_model(processed, training=False)[0][0])
                 score = prob * 100
                 st.session_state.hand_score = score
 
@@ -317,7 +330,6 @@ if voice_score is not None and hand_score is not None:
 
     if final_score >= 65:
         diagnosis = "High Parkinson Risk"
-        recommendation = "Consult neurologist immediately."
         st.error(diagnosis)
 
         causes = [
@@ -337,7 +349,6 @@ if voice_score is not None and hand_score is not None:
 
     elif final_score >= 40:
         diagnosis = "Moderate Risk"
-        recommendation = "Early symptoms possible."
         st.warning(diagnosis)
 
         causes = [
@@ -356,7 +367,6 @@ if voice_score is not None and hand_score is not None:
 
     else:
         diagnosis = "Low Risk"
-        recommendation = "Neurological pattern normal."
         st.success(diagnosis)
 
         causes = [
@@ -372,12 +382,10 @@ if voice_score is not None and hand_score is not None:
         ]
 
     st.subheader("Clinical Insights")
-
     for c in causes:
         st.write("•", c)
 
     st.subheader("Prevention Advice")
-
     for p in prevention:
         st.write("•", p)
 
@@ -385,5 +393,4 @@ else:
     st.info("Run both analyses to generate final report.")
 
 st.divider()
-
 st.caption("NeuroSense AI • Advanced Clinical Screening System")
