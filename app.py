@@ -26,11 +26,6 @@ from reportlab.lib.styles import getSampleStyleSheet
 import os
 import gdown
 
-MODEL_PATH = "handwriting_model.keras"
-
-if not os.path.exists(MODEL_PATH):
-    url = "https://drive.google.com/file/d/1QIQn0WiKcTNO7EpystaIedD46ldM_aEu/view?usp=drive_link"
-    gdown.download(url, MODEL_PATH, quiet=False)
 # =============================
 # PAGE SETTINGS
 # =============================
@@ -137,6 +132,7 @@ st.divider()
 # LOAD MODELS
 # =============================
 @st.cache_resource(show_spinner=False)
+
 def load_models():
     try:
         voice_model = joblib.load("voice_model.pkl")
