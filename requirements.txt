@@ -1,11 +1,11 @@
 streamlit
 numpy
+pandas
+scikit-learn
 librosa
 joblib
 tensorflow
 opencv-python-headless
-pillow
-reportlab
-xgboost
-scikit-learn
+Pillow
+soundfile
 gdown
