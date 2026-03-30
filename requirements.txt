@@ -8,3 +8,4 @@ pillow
 reportlab
 xgboost
 scikit-learn
+gdown
